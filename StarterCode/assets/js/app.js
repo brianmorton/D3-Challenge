@@ -7,13 +7,13 @@ var margin = {
   right: 40,
   bottom: 60,
   left: 50
-};
+  };
 
-//calculate finals
+//calculate final border with margin padding
 var width = svgWidth - margin.left - margin.right;
 var height = svgHeight - margin.top - margin.bottom;
 
-// SVG wrapper
+//SVG wrapper
 var svg = d3
   .select("#scatter")
   .append("svg")
@@ -28,39 +28,50 @@ d3.csv("assets/data/data.csv").then(function(incomingData) {
   incomingData.forEach(function(data) {
     data.poverty = +data.poverty;
     data.healthcare = +data.healthcare;
-  });
+      });
 
-  //scales
-  var xScaling = d3.scaleLinear()
+  //scales functions
+  var xLinearScale = d3.scaleLinear()
     .domain(d3.extent(incomingData, d => d.poverty))
     .range([0, width])
-   
-
-  var yScaling = d3.scaleLinear()
+  
+  var yLinearScale = d3.scaleLinear()
     .domain([0,d3.max(incomingData, d => d.healthcare)])
     .range([height, 0])
-    
-  
-  // make axes
-  var xaxis = d3.axisBottom(xScaling);
-  var yaxis = d3.axisLeft(yScaling);
 
+//add axes
+  var xaxis = d3.axisBottom(xLinearScale);
+  var yaxis = d3.axisLeft(yLinearScale);
 
-// add axes
-  chartGroup.append("g").attr("transform", `translate(0, ${height})`).call(xaxis);
-  chartGroup.append("g").call(yaxis);
+  chartGroup.append("g").attr("transform", `translate(0, ${height})`)
+  .call(xaxis);
+  chartGroup.append("g")
+  .call(yaxis);
 
-//scatter plot
+//scatter plot circles
 chartGroup.selectAll("circle")
 .data(incomingData)
 .enter()
 .append("circle")
-.attr("cx", d=>xScaling(d.poverty))
-.attr("cy", d=>yScaling(d.healthcare))
+.attr("cx", d=>xLinearScale(d.poverty))
+.attr("cy", d=>yLinearScale(d.healthcare))
 .attr("r", "10")
 .attr("stroke-width", "1")
-.classed("stateCircle", true)
-.attr("opacity", 0.75);
+.attr("fill", "blue")
+.attr("opacity", 0.5);
+
+//add axes text
+chartGroup.append("text")
+  .attr("transform", `translate(${width / 2}, ${height + margin.top +15})`)
+  .attr("class", "axisText")
+  .text("Poverty");
+
+chartGroup.append("text")
+  .attr("y", 0 - ((margin.left / 2)))
+  .attr("x", 0 - (height / 2))
+  .attr("transform", "rotate(-90)")
+  .attr("class", "axisText")
+  .text("Healthcare");
 
 //add state initials
 chartGroup.append("g")
@@ -69,18 +80,6 @@ chartGroup.append("g")
   .enter()
   .append("text")
   .text(d=>d.abbr)
-  .attr("x",d=>xScaling(d.poverty))
-  .attr("y",d=>yScaling(d.healthcare))
-
-  
-  //add axes text
-  chartGroup.append("text")
-        .attr("transform", `translate(${width / 2}, ${height + margin.top + 13})`)
-        .text("x axis");
-
-  chartGroup.append("text")
-        .attr("y", 0 - ((margin.left / 2) + 2))
-        .attr("x", 0 - (height / 2))
-        .attr("transform", "rotate(-90)")
-        .text("y axis");
+  .attr("x",d=>xLinearScale(d.poverty))
+  .attr("y",d=>yLinearScale(d.healthcare))
 })
